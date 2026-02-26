@@ -1,37 +1,74 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { useState } from 'react';
 import { Task } from '../types/Task';
+
 type TaskItemProps = {
     task: Task;
     onToggle: (id: string) => void;
     onDelete: (id: string) => void;
+    onEdit: (id: string, newTitle: string) => void;
 };
-export default function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
+
+export default function TaskItem({ task, onToggle, onDelete, onEdit }: TaskItemProps) {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedText, setEditedText] = useState(task.title);
+
+    const handleSave = () => {
+        console.log("SALVOU");
+        if (editedText.trim() === '') return;
+        onEdit(task.id, editedText);
+        setIsEditing(false);
+    };
     return (
         <View style={styles.container}>
             <TouchableOpacity
                 style={styles.content}
-                onPress={() => onToggle(task.id)}
+                onPress={() => {
+                    if (!isEditing) {
+                        onToggle(task.id);
+                    }
+                }}
             >
                 <View style={[
                     styles.checkbox,
                     task.completed && styles.checkboxCompleted
                 ]} />
-                <Text style={[
-                    styles.title,
-                    task.completed && styles.titleCompleted
-                ]}>
-                    {task.title}
-                </Text>
+                {isEditing ? (
+                    <TextInput
+                        style={styles.inputEdit}
+                        value={editedText}
+                        onChangeText={setEditedText}
+                        onSubmitEditing={handleSave}
+                        autoFocus
+                    />
+                ) : (
+                    <Text
+                        style={[
+                            styles.title,
+                            task.completed && styles.titleCompleted
+                        ]}
+                    >
+                        {task.title}
+                    </Text>
+                )}
             </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => setIsEditing(true)}
+            >
+                <Text style={styles.editText}>✏️</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => onDelete(task.id)}
             >
-                <Text style={styles.deleteText}>️</Text>
+                <Text style={styles.deleteText}>🗑️</Text>
             </TouchableOpacity>
         </View>
     );
 }
+
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
@@ -77,5 +114,18 @@ const styles = StyleSheet.create({
     },
     deleteText: {
         fontSize: 20,
+    },
+    inputEdit: {
+        flex: 1,
+        fontSize: 16,
+        borderBottomWidth: 1,
+        borderColor: '#7c0db3ff',
+    },
+    editButton: {
+        padding: 8,
+    },
+
+    editText: {
+        fontSize: 18,
     },
 });
