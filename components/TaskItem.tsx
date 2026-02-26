@@ -1,6 +1,12 @@
-import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
-import { useState } from 'react';
+import { Animated, View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
 import { Task } from '../types/Task';
+
+const categoryColors = {
+    trabalho: '#d5b1ffff',
+    pessoal: '#bee4fdff',
+    estudos: '#fdb2e4ff',
+};
 
 type TaskItemProps = {
     task: Task;
@@ -9,30 +15,59 @@ type TaskItemProps = {
     onEdit: (id: string, newTitle: string) => void;
 };
 
-export default function TaskItem({ task, onToggle, onDelete, onEdit }: TaskItemProps) {
+export default function TaskItem({
+    task,
+    onToggle,
+    onDelete,
+    onEdit,
+}: TaskItemProps) {
+
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(task.title);
 
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+    }, []);
+
+    const handleDelete = () => {
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+        }).start(() => onDelete(task.id));
+    };
+
     const handleSave = () => {
-        console.log("SALVOU");
         if (editedText.trim() === '') return;
         onEdit(task.id, editedText);
         setIsEditing(false);
     };
+
     return (
-        <View style={styles.container}>
+        <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
             <TouchableOpacity
                 style={styles.content}
-                onPress={() => {
-                    if (!isEditing) {
-                        onToggle(task.id);
-                    }
-                }}
+                onPress={() => !isEditing && onToggle(task.id)}
             >
-                <View style={[
-                    styles.checkbox,
-                    task.completed && styles.checkboxCompleted
-                ]} />
+                <View
+                    style={[
+                        styles.checkbox,
+                        task.completed && styles.checkboxCompleted,
+                    ]}
+                />
+                <View
+                    style={[
+                        styles.categoryDot,
+                        { backgroundColor: categoryColors[task.category] }
+                    ]}
+                />
+
                 {isEditing ? (
                     <TextInput
                         style={styles.inputEdit}
@@ -45,13 +80,14 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit }: TaskItemP
                     <Text
                         style={[
                             styles.title,
-                            task.completed && styles.titleCompleted
+                            task.completed && styles.titleCompleted,
                         ]}
                     >
                         {task.title}
                     </Text>
                 )}
             </TouchableOpacity>
+
             <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => setIsEditing(true)}
@@ -61,11 +97,11 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit }: TaskItemP
 
             <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => onDelete(task.id)}
+                onPress={handleDelete}
             >
                 <Text style={styles.deleteText}>🗑️</Text>
             </TouchableOpacity>
-        </View>
+        </Animated.View>
     );
 }
 
@@ -74,7 +110,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#fff',
-
         padding: 16,
         borderRadius: 8,
         marginBottom: 8,
@@ -124,8 +159,13 @@ const styles = StyleSheet.create({
     editButton: {
         padding: 8,
     },
-
     editText: {
         fontSize: 18,
+    },
+    categoryDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        marginRight: 8,
     },
 });

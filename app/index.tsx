@@ -8,13 +8,16 @@ export default function Home() {
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [filter, setFilter] = useState<'all' | 'completed' | 'pending'>('all');
+    const [selectedCategory, setSelectedCategory] = useState<'trabalho' | 'pessoal' | 'estudos'>('pessoal');
+
 
     // Adicionar nova tarefa
     const handleAddTask = (title: string) => {
         const newTask: Task = {
             id: Date.now().toString(),
-            title: title,
+            title,
             completed: false,
+            category: selectedCategory,
         };
         setTasks([...tasks, newTask]);
     };
@@ -55,8 +58,7 @@ export default function Home() {
                     {completedTasks} de {totalTasks} concluídas
                 </Text>
             </View>
-            <TaskInput onAddTask={handleAddTask} />
-            <View style={styles.filtersContainer}>
+            <TaskInput onAddTask={handleAddTask} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />            <View style={styles.filtersContainer}>
                 <TouchableOpacity
                     style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
                     onPress={() => setFilter('all')}

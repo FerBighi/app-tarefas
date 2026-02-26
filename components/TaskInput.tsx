@@ -1,9 +1,18 @@
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useState } from 'react';
+
 type TaskInputProps = {
     onAddTask: (title: string) => void;
+    selectedCategory: 'trabalho' | 'pessoal' | 'estudos';
+    onSelectCategory: (category: 'trabalho' | 'pessoal' | 'estudos') => void;
 };
-export default function TaskInput({ onAddTask }: TaskInputProps) {
+
+export default function TaskInput({
+    onAddTask,
+    selectedCategory,
+    onSelectCategory,
+}: TaskInputProps) {
+
     const [text, setText] = useState('');
     const handleAddTask = () => {
         if (text.trim() === '') {
@@ -12,18 +21,42 @@ export default function TaskInput({ onAddTask }: TaskInputProps) {
         onAddTask(text);
         setText(''); // Limpa o input após adicionar
     };
+    const categoryColors = {
+        trabalho: '#d5b1ffff',
+        pessoal: '#bee4fdff',
+        estudos: '#fdb2e4ff',
+    };
     return (
         <View style={styles.container}>
-            <TextInput
-                style={styles.input}
-                placeholder="Digite uma nova tarefa..."
-                value={text}
-                onChangeText={setText}
-                onSubmitEditing={handleAddTask}
-            />
-            <TouchableOpacity style={styles.button} onPress={handleAddTask}>
-                <Text style={styles.buttonText}>+</Text>
-            </TouchableOpacity>
+            <View style={styles.inputRow}>
+
+                <View style={styles.categorySelector}>
+                    {(['trabalho', 'pessoal', 'estudos'] as const).map(cat => (
+                        <TouchableOpacity
+                            key={cat}
+                            onPress={() => onSelectCategory(cat)}
+                            style={[
+                                styles.categoryCircle,
+                                { backgroundColor: categoryColors[cat] },
+                                selectedCategory === cat && styles.categorySelected
+                            ]}
+                        />
+                    ))}
+                </View>
+
+                <TextInput
+                    style={styles.input}
+                    placeholder="Digite uma nova tarefa..."
+                    value={text}
+                    onChangeText={setText}
+                    onSubmitEditing={handleAddTask}
+                />
+
+                <TouchableOpacity style={styles.button} onPress={handleAddTask}>
+                    <Text style={styles.buttonText}>+</Text>
+                </TouchableOpacity>
+
+            </View>
         </View>
     );
 }
@@ -57,5 +90,26 @@ const styles = StyleSheet.create({
         fontSize: 32,
         fontWeight: 'bold',
         marginTop: -4,
+    },
+    inputRow: {
+        flexDirection: 'row',
+        alignItems: 'center', // 👈 isso alinha tudo no meio vertical
+        gap: 8,
+    },
+
+    categorySelector: {
+        flexDirection: 'row',
+        gap: 6,
+    },
+
+    categoryCircle: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+    },
+
+    categorySelected: {
+        borderWidth: 2,
+        borderColor: '#000',
     },
 });
